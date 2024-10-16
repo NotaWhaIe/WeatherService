@@ -1,3 +1,8 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using WeatherService.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Добавляем сервисы в контейнер.
@@ -6,7 +11,9 @@ builder.Services.AddControllers();
 // Регистрируем сервис HttpClient
 builder.Services.AddHttpClient();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Регистрируем WeatherDataService как Singleton
+builder.Services.AddSingleton<WeatherDataService>();
+
 // Настраиваем Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

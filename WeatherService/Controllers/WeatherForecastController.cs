@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
+using WeatherService.Services;
 
 namespace WeatherService.Controllers
 {
@@ -7,52 +9,49 @@ namespace WeatherService.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-
         private readonly ILogger<WeatherForecastController> _logger;
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly WeatherDataService _weatherDataService;
+
         public WeatherForecastController(
-                    ILogger<WeatherForecastController> logger,
-                    IHttpClientFactory httpClientFactory)
+            ILogger<WeatherForecastController> logger,
+            WeatherDataService weatherDataService)
         {
             _logger = logger;
-            _httpClientFactory = httpClientFactory;
+            _weatherDataService = weatherDataService;
         }
 
-        // Новый метод для получения температуры по городу
-        [HttpGet("temperature/{city}")]
-        public async Task<IActionResult> GetTemperature(string city)
+        // Метод для добавления города в список отслеживаемых
+        [HttpPost("temperature/{city}")]
+        public IActionResult AddCity(string city)
         {
-            var client = _httpClientFactory.CreateClient();
-
-            // Используем ваш API-ключ
-            string apiKey = "65950ca603e8de3caeb6547119af078f";
-            string requestUrl = $"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={apiKey}&units=metric";
-
-            try
+            if (_weatherDataService.AddCity(city))
             {
-                var response = await client.GetAsync(requestUrl);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-
-                    // Парсим JSON-ответ
-                    using var jsonDoc = JsonDocument.Parse(content);
-                    var root = jsonDoc.RootElement;
-
-                    double temp = root.GetProperty("main").GetProperty("temp").GetDouble();
-
-                    return Ok(new { city = city, temperature = temp });
-                }
-                else
-                {
-                    return BadRequest("Не удалось получить данные о погоде.");
-                }
+                return Ok($"Город {city} добавлен для отслеживания.");
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError(ex, "Ошибка при получении данных о погоде.");
-                return StatusCode(500, "Внутренняя ошибка сервера.");
+                return BadRequest("Город уже отслеживается.");
+            }
+        }
+
+        // Метод для получения истории температур по всем городам
+        [HttpGet("temperature")]
+        public IActionResult GetAllTemperatures()
+        {
+            return Ok(_weatherDataService.CityTemperatures);
+        }
+
+        // Метод для удаления города из списка отслеживаемых
+        [HttpDelete("temperature/{city}")]
+        public IActionResult RemoveCity(string city)
+        {
+            if (_weatherDataService.RemoveCity(city))
+            {
+                return Ok($"Город {city} удалён из отслеживания.");
+            }
+            else
+            {
+                return NotFound("Город не найден в списке отслеживаемых.");
             }
         }
     }
