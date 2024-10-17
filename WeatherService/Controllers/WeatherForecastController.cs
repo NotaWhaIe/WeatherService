@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using WeatherService.Services;
 
 namespace WeatherService.Controllers
@@ -38,7 +36,8 @@ namespace WeatherService.Controllers
         [HttpGet("temperature")]
         public IActionResult GetAllTemperatures()
         {
-            return Ok(_weatherDataService.CityTemperatures);
+            var data = _weatherDataService.GetAllTemperatures();
+            return Ok(data);
         }
 
         // ћетод дл€ удалени€ города из списка отслеживаемых

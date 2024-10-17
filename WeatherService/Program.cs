@@ -1,3 +1,4 @@
+// Program.cs
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -8,11 +9,14 @@ var builder = WebApplication.CreateBuilder(args);
 // Добавляем сервисы в контейнер.
 builder.Services.AddControllers();
 
-// Регистрируем сервис HttpClient
+// Регистрируем HttpClient
 builder.Services.AddHttpClient();
 
 // Регистрируем WeatherDataService как Singleton
 builder.Services.AddSingleton<WeatherDataService>();
+
+// Регистрируем WeatherBackgroundService как Hosted Service
+builder.Services.AddHostedService<WeatherBackgroundService>();
 
 // Настраиваем Swagger
 builder.Services.AddEndpointsApiExplorer();
